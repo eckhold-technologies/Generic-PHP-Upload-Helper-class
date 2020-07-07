@@ -16,7 +16,6 @@
 
 class Uploader {
 
-private const KB = 1024;
 private const MB = 1048576;
 private const GB = 1073741824;
 private const TB = 1099511627776;
@@ -25,6 +24,11 @@ private const TB = 1099511627776;
  * @var int - the file size limit setting in KB
  */
 private $fileSizeLimit;
+
+/**
+ * @var array|null - array of accepted file types
+ */
+private $acceptedFileTypes;
 
 /**
  * @var array|null - the array containing HTML file data
@@ -125,7 +129,8 @@ function setFileObjectName(string $fileObjectName) {
  * sets the filetype.
  */
 private function setFileType() {
-    $this->fileType = $this->fileObject[$this->fileObjectName]['type'];
+    $nameComponents = explode(".",$this->originalFileName);
+    $this->fileType = "." . $nameComponents[count($nameComponents)-1];
 }
 
 /**
@@ -279,6 +284,10 @@ function loadFile(array $file, string $fileObjectName = NULL) {
     $this->setFileType();
     $this->setFileSize();
 
+    if(!$this->checkFileSize() || !$this->checkFileType()) {
+        $this->unloadFile();
+        return false;
+    }
     return true;
 }
 
@@ -314,5 +323,79 @@ private function getServerFileSizeLimit() {
     }
     return $result;
 }
+
+/**
+ * adds a single extension to the allowed file types
+ * 
+ * @param string $extension - file type extension (.ext)
+ */
+function addAllowedFiletype(string $extension) {
+    $temparray = [];
+    array_push($temparray, $extension);
+    $this->addAllowedFileTypes($temparray);
+}
+
+function addAllowedFileTypes(array $extensions) {
+    foreach ($extensions as $extension) {
+        array_push($this->acceptedFileTypes,$extension);
+    }
+}
+
+/**
+ * returns the allowed file types
+ * 
+ * @return array|null
+ */
+function getAllowedFileTypes() {
+    return $this->acceptedFileTypes;
+}
+
+/**
+ * clears the list of allowed file types and allows any filetype
+ */
+function clearAllowedFileTypes() {
+    $this->acceptedFileTypes = NULL;
+}
+
+/**
+ * checks to see if the file size is less than the set filesize limit
+ * 
+ * @return bool
+ */
+private function checkFileSize() {
+    if ($this->fileSizeLimit < $this->fileSize) {
+        return false
+    } else {
+        return true;
+    }
+}
+
+/**
+ * if explicit filetypes have been allowed, checks to see if the file 
+ * is allowed to be uploaded
+ * 
+ * @return bool
+ */
+private function checkFileType() {
+    if (isset($this->acceptedFileTypes)) {
+        if (in_array($this->fileType, $this->acceptedFileTypes)) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return true;
+    }
+}
+
+/**
+ * uploads file to the correct location
+ * 
+ * @return bool
+ */
+function uploadFile(){
+    return move_uploaded_file($this->fileObject[$this->fileObjectName]['tmp_name'], $this->filePath . $this->fileName);
+}
+
 }
 ?>
