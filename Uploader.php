@@ -1,7 +1,7 @@
 <?php
 /** 
  * Uploader - PHP File Upload helper class
- * PHP Version 5.1
+ * PHP Version 5.5
  * 
  * @see
  * 
@@ -16,6 +16,7 @@
 
 class Uploader {
 
+private const KB = 1024;
 private const MB = 1048576;
 private const GB = 1073741824;
 private const TB = 1099511627776;
@@ -73,10 +74,10 @@ private $originalFileName;
  * @param string    $fileObjectName - File Input form element name.
  * @param string    $filePath       - Server path for file storage.
  */
-function __contruct(array $fileObject = NULL, string $fileObjectName = NULL, string $filePath = NULL) {
+function __construct(array $fileObject = NULL, string $fileObjectName = NULL, string $filePath = NULL) {
     $this->clearFileSizeLimit();
 
-    if (!isset($filePath)) {
+    if (is_null($filePath)) {
         $filePath = "../";
     }
     $this->setFilePath($filePath);
@@ -178,23 +179,25 @@ function getOriginalFileName() {
 /**
  * returns the file size in selected unit
  * 
- * @param string $unit  -   the unit of storage to return as, KB by default
+ * @param string $unit  -   the unit of storage to return as, Bytes by default
  * 
  * @return string|bool  -   string if successful, false if invalid
  */
-function getFileSize(string $unit = 'KB') {
+function getFileSize(string $unit = NULL) {
     $result = false;
     $unit = strtoupper($unit);
     if (!isset($this->fileSize)) {
         $result = false;
     } else if ($unit == 'KB') {
-        $result = $this->fileSize;
+        $result = $this->fileSize / $this::KB;
     } else if ($unit == 'MB') {
         $result = $this->fileSize / $this::MB;
     } else if ($unit == 'GB') {
         $result = $this->fileSize / $this::GB;
     } else if ($unit == 'TB') {
         $result = $this->fileSize / $this::TB;
+    } else  {
+        $result = $this->fileSize;
     }
     return $result;
 }
@@ -203,17 +206,17 @@ function getFileSize(string $unit = 'KB') {
  * sets the file size limit if the limit is < the server's limit
  * 
  * @param int       $size   -   the file size
- * @param string    $unit   -   the unit of storage that the size is given as (defaults to KB)
+ * @param string    $unit   -   the unit of storage that the size is given as (defaults to Bytes)
  * 
  * @return  bool            -   false if the size is greated than the server's limit
  */
-function setFileSizeLimit(int $size, string $unit = 'KB') {
+function setFileSizeLimit(int $size, string $unit = NULL) {
     $result = false;
     $unit = strtoupper($unit);
     $serverMaxFilesize = $this->getServerFileSizeLimit();
     if ($unit == 'KB') {
-        if ($size < $serverMaxFilesize) {
-            $this->fileSizeLimit = $size;
+        if ($size*$this::KB < $serverMaxFilesize) {
+            $this->fileSizeLimit = $size*$this::KB;
             $result = true;
         }
     } else if ($unit == 'MB') {
@@ -231,6 +234,11 @@ function setFileSizeLimit(int $size, string $unit = 'KB') {
             $this->fileSizeLimit = $size*$this::TB;
             $result = true;
         }
+    } else {
+        if ($size < $serverMaxFilesize) {
+            $this->fileSizeLimit = $size;
+            $result = true;
+        }
     }
     return $result;
 }
@@ -242,19 +250,21 @@ function setFileSizeLimit(int $size, string $unit = 'KB') {
  * 
  * @return int|bool         -   returns false if the limit is not set, else returns the size
  */
-function getFileSizeLimit(string $unit = 'KB'){
+function getFileSizeLimit(string $unit = NULL){
     $result = false;
     $unit = strtoupper($unit);
     if (!isset($this->fileSizeLimit)) {
         $result = false;
     } else if ($unit == 'KB') {
-        $result = $this->fileSizeLimit;
+        $result = $this->fileSizeLimit / $this::KB;
     } else if ($unit == 'MB') {
         $result = $this->fileSizeLimit / $this::MB;
     } else if ($unit == 'GB') {
         $result = $this->fileSizeLimit / $this::GB;
     } else if ($unit == 'TB') {
         $result = $this->fileSizeLimit / $this::TB;
+    } else {
+        $result = $this->fileSizeLimit;
     }
     return $result;
 }
@@ -284,7 +294,11 @@ function loadFile(array $file, string $fileObjectName = NULL) {
     $this->setFileType();
     $this->setFileSize();
 
-    if(!$this->checkFileSize() || !$this->checkFileType()) {
+    if(!$this->checkFileSize()) {
+        $this->unloadFile();
+        return false;
+    }
+    if (!$this->checkFileType()) {
         $this->unloadFile();
         return false;
     }
@@ -300,28 +314,28 @@ function unloadFile() {
     $this->fileType = NULL;
     $this->fileSize = NULL;
     $this->fileName = NULL;
+    $this->originalFileName = NULL;
 }
 
 /**
  * returns the max file size limit of the server
  * 
- * @return int  -   the max filesize limit in KB
+ * @return int  -   the max filesize limit in Bytes
  */
 private function getServerFileSizeLimit() {
     $serverMaxFilesize = trim(ini_get('upload_max_filesize'));
     $last = strtoupper($serverMaxFilesize[strlen($serverMaxFilesize)-1]);
-    $result = 0;
     switch($last) {
         case 'M':
-            $result = (int)$serverMaxFilesize*$this::MB;
+            return (int)$serverMaxFilesize*$this::MB;
         case 'K':
-            $result = (int)$serverMaxFilesize;
+            return (int)$serverMaxFilesize*$this::KB;
         case 'G':
-            $result = (int)$serverMaxFilesize*$this::GB;
+            return (int)$serverMaxFilesize*$this::GB;
         case 'T':    
-            $result = (int)$serverMaxFilesize*$this::TB;
+            return (int)$serverMaxFilesize*$this::TB;
     }
-    return $result;
+    return 0;
 }
 
 /**
@@ -330,12 +344,15 @@ private function getServerFileSizeLimit() {
  * @param string $extension - file type extension (.ext)
  */
 function addAllowedFiletype(string $extension) {
-    $temparray = [];
-    array_push($temparray, $extension);
+    $temparray = array($extension);
+    //array_push($temparray, $extension);
     $this->addAllowedFileTypes($temparray);
 }
 
 function addAllowedFileTypes(array $extensions) {
+    if (!isset($this->acceptedFileTypes)) {
+        $this->acceptedFileTypes = array();
+    }
     foreach ($extensions as $extension) {
         array_push($this->acceptedFileTypes,$extension);
     }
@@ -364,7 +381,7 @@ function clearAllowedFileTypes() {
  */
 private function checkFileSize() {
     if ($this->fileSizeLimit < $this->fileSize) {
-        return false
+        return false;
     } else {
         return true;
     }
