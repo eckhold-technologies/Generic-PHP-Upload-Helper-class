@@ -189,13 +189,13 @@ function getFileSize(string $unit = NULL) {
     if (!isset($this->fileSize)) {
         $result = false;
     } else if ($unit == 'KB') {
-        $result = $this->fileSize / $this::KB;
+        $result = $this->fileSize / self::KB;
     } else if ($unit == 'MB') {
-        $result = $this->fileSize / $this::MB;
+        $result = $this->fileSize / self::MB;
     } else if ($unit == 'GB') {
-        $result = $this->fileSize / $this::GB;
+        $result = $this->fileSize / self::GB;
     } else if ($unit == 'TB') {
-        $result = $this->fileSize / $this::TB;
+        $result = $this->fileSize / self::TB;
     } else  {
         $result = $this->fileSize;
     }
@@ -215,23 +215,23 @@ function setFileSizeLimit(int $size, string $unit = NULL) {
     $unit = strtoupper($unit);
     $serverMaxFilesize = $this->getServerFileSizeLimit();
     if ($unit == 'KB') {
-        if ($size*$this::KB < $serverMaxFilesize) {
-            $this->fileSizeLimit = $size*$this::KB;
+        if ($size*self::KB < $serverMaxFilesize) {
+            $this->fileSizeLimit = $size*self::KB;
             $result = true;
         }
     } else if ($unit == 'MB') {
-        if ($size*$this::MB < $serverMaxFilesize) {
-            $this->fileSizeLimit = $size*$this::MB;
+        if ($size*self::MB < $serverMaxFilesize) {
+            $this->fileSizeLimit = $size*self::MB;
             $result = true;
         }
     } else if ($unit == 'GB') {
-        if ($size*$this::GB < $serverMaxFilesize) {
-            $this->fileSizeLimit = $size*$this::GB;
+        if ($size*self::GB < $serverMaxFilesize) {
+            $this->fileSizeLimit = $size*self::GB;
             $result = true;
         }
     } else if ($unit == 'TB') {
-        if ($size*$this::TB < $serverMaxFilesize) {
-            $this->fileSizeLimit = $size*$this::TB;
+        if ($size*self::TB < $serverMaxFilesize) {
+            $this->fileSizeLimit = $size*self::TB;
             $result = true;
         }
     } else {
@@ -256,13 +256,13 @@ function getFileSizeLimit(string $unit = NULL){
     if (!isset($this->fileSizeLimit)) {
         $result = false;
     } else if ($unit == 'KB') {
-        $result = $this->fileSizeLimit / $this::KB;
+        $result = $this->fileSizeLimit / self::KB;
     } else if ($unit == 'MB') {
-        $result = $this->fileSizeLimit / $this::MB;
+        $result = $this->fileSizeLimit / self::MB;
     } else if ($unit == 'GB') {
-        $result = $this->fileSizeLimit / $this::GB;
+        $result = $this->fileSizeLimit / self::GB;
     } else if ($unit == 'TB') {
-        $result = $this->fileSizeLimit / $this::TB;
+        $result = $this->fileSizeLimit / self::TB;
     } else {
         $result = $this->fileSizeLimit;
     }
@@ -327,13 +327,13 @@ private function getServerFileSizeLimit() {
     $last = strtoupper($serverMaxFilesize[strlen($serverMaxFilesize)-1]);
     switch($last) {
         case 'M':
-            return (int)$serverMaxFilesize*$this::MB;
+            return (int)$serverMaxFilesize*self::MB;
         case 'K':
-            return (int)$serverMaxFilesize*$this::KB;
+            return (int)$serverMaxFilesize*self::KB;
         case 'G':
-            return (int)$serverMaxFilesize*$this::GB;
+            return (int)$serverMaxFilesize*self::GB;
         case 'T':    
-            return (int)$serverMaxFilesize*$this::TB;
+            return (int)$serverMaxFilesize*self::TB;
     }
     return 0;
 }
@@ -410,7 +410,9 @@ private function checkFileType() {
  * @return bool
  */
 function uploadFile(){
-    return move_uploaded_file($this->fileObject[$this->fileObjectName]['tmp_name'], $this->filePath . $this->fileName);
+    $result = move_uploaded_file($this->fileObject[$this->fileObjectName]['tmp_name'], $this->filePath . $this->fileName);
+    chmod($this->filePath . $this->fileName, 0644);
+    return $result;
 }
 
 }
