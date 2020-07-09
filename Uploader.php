@@ -13,7 +13,6 @@
  *              A PARTICULAR PURPOSE.
 */
 
-
 class Uploader {
 
 private const KB = 1024;

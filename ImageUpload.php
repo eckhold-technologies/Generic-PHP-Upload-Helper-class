@@ -7,7 +7,7 @@
  * 
  * @author      Jake Dixon - Eckhold Technologies <j.dixon@eckhold.com.au>
  * @copyright   2020 Eckhold Technologies Pty Ltd
- * @license      http://www.gnu.org/copyleft/lesser.html GNU GNU Lesser General Public License
+ * @license     http://www.gnu.org/copyleft/lesser.html GNU GNU Lesser General Public License
  * @note        this program is distributed in the hope that it will be useful - WITHOUT ANY
  *              WARRANTY; Without even the implied warrnty of MERCHANTABILITY or FITNESS FOR
  *              A PARTICULAR PURPOSE.
