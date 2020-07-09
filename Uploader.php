@@ -77,7 +77,7 @@ private $originalFileName;
 function __construct(array $fileObject = NULL, string $fileObjectName = NULL, string $filePath = NULL) {
     $this->clearFileSizeLimit();
 
-    if (is_null($filePath)) {
+    if (!isset($filePath)) {
         $filePath = "../";
     }
     $this->setFilePath($filePath);
@@ -345,7 +345,6 @@ private function getServerFileSizeLimit() {
  */
 function addAllowedFiletype(string $extension) {
     $temparray = array($extension);
-    //array_push($temparray, $extension);
     $this->addAllowedFileTypes($temparray);
 }
 
