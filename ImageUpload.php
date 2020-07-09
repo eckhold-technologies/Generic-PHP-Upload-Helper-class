@@ -1,6 +1,6 @@
 <?php
 /**
- * ImageUploader - PHP Image Upload helper class
+ * ImageUploader - PHP Image Upload helper class extending my Uploader helper class
  * PHP Version 5.5
  * 
  * @see
@@ -168,6 +168,9 @@ class ImageUploader extends Uploader {
         }
         if (!isset($this->thumbName)) {
             $this->setThumbName();
+        }
+        if (!file_exists($this->getThumbPath())) {
+            mkdir($this->getThumbPath(), 0777, true);
         }
         $this->thumb->saveToFile($this->getThumbFullPath());
     }

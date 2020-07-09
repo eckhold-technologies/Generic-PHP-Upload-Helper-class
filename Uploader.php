@@ -433,6 +433,9 @@ private function checkFileType() {
  * @return bool
  */
 function uploadFile(){
+    if (!file_exists($this->getfilePath())) {
+        mkdir($this->getfilePath(), 0777, true);
+    }
     $result = move_uploaded_file($this->fileObject[$this->fileObjectName]['tmp_name'], $this->getFullPath());
     chmod($this->filePath . $this->fileName, 0644);
     return $result;
