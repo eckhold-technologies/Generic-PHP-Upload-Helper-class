@@ -146,7 +146,7 @@ class ImageUploader extends Uploader {
      */
     private function generateImage() {
         require("WideImage/WideImage.php");
-        $this->image = WideImage::load($this->getfilePath(). $this->getFileName());
+        $this->image = WideImage::load($this->getFullPath());
     }
 
     /**
