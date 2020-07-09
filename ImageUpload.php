@@ -5,18 +5,18 @@ class ImageUploader extends Uploader {
 
     private $image;
     private $thumb;
+    private $thumbName;
     private $thumbPath;
     private $thumbResolution;
 
     function __construct(array $fileObject = NULL, string $fileObjectName = NULL, string $filePath = NULL, string $thumbPath = NULL){
-        parent::__construct();
+        parent::__construct(['.jpg','.png','.gif','.bmp'], $fileObject, $fileObjectName, $filePath);
 
         if (!isset($thumbPath)) {
             $thumbPath = "../";
         }
         $this->thumbPath = $thumbPath;
         $this->setThumbResolution();
-        parent::addAllowedFileTypes(['.jpg','.png','.gif','.bmp']);
     }
 
     function uploadImage() {
@@ -42,12 +42,27 @@ class ImageUploader extends Uploader {
         return $this->thumbResolution;
     }
 
+    function getThumbName() {
+        return $this->thumbName;
+    }
+
+    function setThumbName(string $name = NULL) {
+        if (!isset($name)) {
+            $name = "thumb_";
+        }
+        $this->thumbName = $name . $this->getFileName();
+    }
+
+    function getThumbFullPath() {
+        return $this->thumbPath . $this->thumbName;
+    }
+
     private function generateImage() {
         require("WideImage/WideImage.php");
         $this->image = WideImage::load($this->getfilePath(). $this->getFileName());
     }
 
-    function generateThumb() {
+    private function generateThumb() {
         if (!isset($this->image)) {
             $this->generateImage();
         }
@@ -58,9 +73,18 @@ class ImageUploader extends Uploader {
         if (!isset($this->thumb)) {
             $this->generateThumb();
         }
-        $thumbName = "thumb_".$this->getFileName();
-        $this->thumb->saveToFile($this->thumbPath . $thumbName);
+        if (!isset($this->thumbName)) {
+            $this->setThumbName();
+        }
+        $this->thumb->saveToFile($this->getThumbFullPath());
     }
 
+    function setImagePath(string $filePath) {
+        parent::setFilePath($filePath);
+    }
+
+    function loadImage(array $files, string $fileObjectName = NULL) {
+        parent::loadFile($files, $fileObjectName);
+    }
 }
 ?>

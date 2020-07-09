@@ -70,13 +70,23 @@ private $originalFileName;
 /**
  * Constructor.
  * 
- * @param array     $fileObject     - Array containg all the file data.
- * @param string    $fileObjectName - File Input form element name.
- * @param string    $filePath       - Server path for file storage.
+ * @param array|string     $allowedFileExtensions   - array or string containt file extensions that will
+ *                                                    only be allowed to upload if set
+ * @param array            $fileObject              - Array containg all the file data.
+ * @param string           $fileObjectName          - File Input form element name.
+ * @param string           $filePath                - Server path for file storage.
  */
-function __construct(array $fileObject = NULL, string $fileObjectName = NULL, string $filePath = NULL) {
+function __construct($allowedFileExtensions = NULL, array $fileObject = NULL, string $fileObjectName = NULL, string $filePath = NULL) {
     $this->clearFileSizeLimit();
 
+    if(isset($allowedFileExtensions)) {
+        if (is_array($allowedFileExtensions)) {
+            $this->addAllowedFileTypes($allowedFileExtensions);
+        } else {
+            $this->addAllowedFiletype($allowedFileExtensions);
+        }
+    }
+    
     if (!isset($filePath)) {
         $filePath = "../";
     }
@@ -140,6 +150,20 @@ private function setFileType() {
 private function setFileName() {
     $this->originalFileName = basename($this->fileObject[$this->fileObjectName]["name"]);
     $this->fileName = time() . '_' . $this->originalFileName;
+}
+
+/**
+ * renanmes the file keeping checks to ensude no double ups
+ */
+function renameFile(string $name) {
+    $this->renameFileAdvanced(time(). '_' . $name);
+}
+
+/**
+ * renames the file, disregarding the checks in place to ensure double ups aren't uploaded
+ */
+function renameFileAdvanced(string $name) {
+    $this->fileName = $name . $this->getFileType();
 }
 
 /**
@@ -343,12 +367,12 @@ private function getServerFileSizeLimit() {
  * 
  * @param string $extension - file type extension (.ext)
  */
-function addAllowedFiletype(string $extension) {
+private function addAllowedFiletype(string $extension) {
     $temparray = array($extension);
     $this->addAllowedFileTypes($temparray);
 }
 
-function addAllowedFileTypes(array $extensions) {
+private function addAllowedFileTypes(array $extensions) {
     if (!isset($this->acceptedFileTypes)) {
         $this->acceptedFileTypes = array();
     }
@@ -410,10 +434,18 @@ private function checkFileType() {
  * @return bool
  */
 function uploadFile(){
-    $result = move_uploaded_file($this->fileObject[$this->fileObjectName]['tmp_name'], $this->filePath . $this->fileName);
+    $result = move_uploaded_file($this->fileObject[$this->fileObjectName]['tmp_name'], $this->getFullPath());
     chmod($this->filePath . $this->fileName, 0644);
     return $result;
 }
 
+/**
+ * returns the full path to the file including filename
+ * 
+ * @return string
+ */
+function getFullPath(){
+    return $this->filePath . $this->fileName;
+}
 }
 ?>
