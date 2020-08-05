@@ -177,6 +177,8 @@ class ImageUploader extends Uploader {
 
     /**
      * sets the path for saving images in
+     * 
+     * @param string
      */
     function setImagePath(string $filePath) {
         parent::setFilePath($filePath);
@@ -184,6 +186,9 @@ class ImageUploader extends Uploader {
 
     /**
      * loads the image $_FILES array
+     * 
+     * @param array
+     * @param string
      */
     function loadImage(array $files, string $fileObjectName = NULL) {
         parent::loadFile($files, $fileObjectName);
