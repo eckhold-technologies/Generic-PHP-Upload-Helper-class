@@ -371,6 +371,10 @@ private function addAllowedFiletype(string $extension) {
     $this->addAllowedFileTypes($temparray);
 }
 
+/** adds array of extensions to the allowed file types
+ * 
+ * @param array $extensions - array of extensions (['.ex1','.ex2'])
+ */
 private function addAllowedFileTypes(array $extensions) {
     if (!isset($this->acceptedFileTypes)) {
         $this->acceptedFileTypes = array();
